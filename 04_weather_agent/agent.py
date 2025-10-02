@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import json
 import requests
+from pydantic import BaseModel, Field
+from typing import Optional
 
 load_dotenv()
 
@@ -69,29 +71,51 @@ SYSTEM_PROMPT = """
 
 message_history = [{"role": "system", "content": SYSTEM_PROMPT}]
 
+
+class MyOutputFormat(BaseModel):
+    step: str = Field(
+        ..., description="The ID of the step. Example: PLAN, OUTPUT, TOOL etc"
+    )
+    content: Optional[str] = Field(None, description="The optional string content")
+    tool: Optional[str] = Field(None, description="The ID of the tool to call")
+    input: Optional[str] = Field(None, description="The input paramter for the tool")
+
+
 while True:
     user_query = input("👉🏻")
+
+    if user_query == "exit":
+        break
+
     message_history.append({"role": "user", "content": user_query})
 
     while True:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=message_history,
+        # response = client.chat.completions.create(
+        #     model="gpt-4o",
+        #     response_format={"type": "json_object"},
+        #     messages=message_history,
+        # )
+
+        # Calling parse function because we need to use pydantic model for response format.
+        response = client.chat.completions.parse(
+            model="gpt-4o", response_format=MyOutputFormat, messages=message_history
         )
 
         raw_result = response.choices[0].message.content
         message_history.append({"role": "assistant", "content": raw_result})
 
-        parsed_result = json.loads(raw_result)
+        # parsed_result = json.loads(raw_result)
+        # Now we don't need to parse the json string.
+        # model directly give us the parsed result
+        parsed_result = response.choices[0].message.parsed
 
-        if parsed_result.get("step") == "START":
-            print("🔥", parsed_result.get("content"))
+        if parsed_result.step == "START":
+            print("🔥", parsed_result.content)
             continue
 
-        if parsed_result.get("step") == "TOOL":
-            tool_to_call = parsed_result.get("tool")
-            tool_input = parsed_result.get("input")
+        if parsed_result.step == "TOOL":
+            tool_to_call = parsed_result.tool
+            tool_input = parsed_result.input
             print(f"🛠️: {tool_to_call} ({tool_input})")
 
             tool_response = available_tools[tool_to_call](tool_input)
@@ -110,10 +134,10 @@ while True:
             )
             continue
 
-        if parsed_result.get("step") == "PLAN":
-            print("🧠", parsed_result.get("content"))
+        if parsed_result.step == "PLAN":
+            print("🧠", parsed_result.content)
             continue
 
-        if parsed_result.get("step") == "OUTPUT":
-            print("🤖", parsed_result.get("content"))
+        if parsed_result.step == "OUTPUT":
+            print("🤖", parsed_result.content)
             break
