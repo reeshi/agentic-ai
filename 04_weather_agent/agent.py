@@ -5,10 +5,16 @@ import json
 import requests
 from pydantic import BaseModel, Field
 from typing import Optional
+import os
 
 load_dotenv()
 
 client = OpenAI()
+
+
+def run_command(cmd: str):
+    result = os.system(cmd)
+    return result
 
 
 def get_weather(city: str):
@@ -20,7 +26,7 @@ def get_weather(city: str):
     return "Something went wrong, please try again"
 
 
-available_tools = {"get_weather": get_weather}
+available_tools = {"get_weather": get_weather, "run_command": run_command}
 
 
 SYSTEM_PROMPT = """
@@ -42,6 +48,7 @@ SYSTEM_PROMPT = """
 
     Available Tools:
     - get_weather(city: string): Takes city name as input string and returns the weather info about the city.
+    - run_command(cmd: string): Takes linux command as input string and returns the result.
 
     Example 1:
     START: Hey, Can you solve 2 + 3 * 5 / 10
