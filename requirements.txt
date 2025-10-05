@@ -41,7 +41,11 @@ langchain-core==0.3.77
 langchain-openai==0.3.34
 langchain-qdrant==0.2.1
 langchain-text-splitters==0.3.11
-langsmith==0.4.31
+langgraph==0.6.8
+langgraph-checkpoint==2.1.1
+langgraph-prebuilt==0.6.4
+langgraph-sdk==0.2.9
+langsmith==0.4.32
 markdown-it-py==3.0.0
 MarkupSafe==3.0.3
 marshmallow==3.26.1
@@ -51,6 +55,7 @@ mypy_extensions==1.1.0
 numpy==2.0.2
 openai==1.109.1
 orjson==3.11.3
+ormsgpack==1.10.0
 packaging==25.0
 portalocker==3.2.0
 propcache==0.3.2
@@ -95,5 +100,6 @@ uvicorn==0.37.0
 uvloop==0.21.0
 watchfiles==1.1.0
 websockets==15.0.1
+xxhash==3.6.0
 yarl==1.20.1
 zstandard==0.25.0
